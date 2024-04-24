@@ -1,0 +1,31 @@
+stages:
+  - build-push
+  - deploy
+
+build-push:
+  stage: build-push
+  environment: production
+  image: docker:stable
+  only:
+    - main
+  services:
+    - docker:dind
+  script:
+    - echo $DOCKER_REGISTRY_PASSWORD | docker login -u $DOCKER_REGISTRY_USER --password-stdin registry.gitlab.com
+    - docker build -f docker/Dockerfile -t registry.gitlab.com/felippe.sandrini/chef-webber-back:${CI_COMMIT_SHORT_SHA} .
+    - docker push registry.gitlab.com/felippe.sandrini/chef-webber-back:${CI_COMMIT_SHORT_SHA}
+
+deploy:
+  stage: deploy
+  environment: production
+  image: docker:stable
+  only:
+    - main
+  services:
+    - docker:dind
+  before_script:
+    - apk update && apk add openssh-client && eval $(ssh-agent -s)
+    - echo "$SSH_PRIVATE_KEY" | ssh-add -
+    - mkdir -p ~/.ssh && touch ~/.ssh/config && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config
+  script:
+    - ssh root@chefwebber.orbesoft.com.br "docker image prune -f && docker container prune -f && cd chefwebber/api && docker-compose stop chefwebber_api && TAG=${CI_COMMIT_SHORT_SHA} docker-compose run --rm chefwebber_api npm run migration:run && TAG=${CI_COMMIT_SHORT_SHA} docker-compose up -d chefwebber_api && exit"

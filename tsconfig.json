@@ -1,0 +1,21 @@
+{
+    "compilerOptions": {
+      "experimentalDecorators": true,
+      "emitDecoratorMetadata": true,
+      "module": "commonjs",
+      "baseUrl": "./src",
+      "paths": {
+        "@crosscutting/*": ["crosscutting/*"],
+        "@modules/*": ["modules/*"]
+      },
+      "rootDirs": ["./src", "./tests"],
+      "typeRoots": ["./src/@types", "./node_modules/@types"],
+      "outDir": "./dist",
+      "esModuleInterop": true,
+      "forceConsistentCasingInFileNames": true,
+      "strict": true,
+      "strictPropertyInitialization": false,
+      "skipLibCheck": true,
+      "resolveJsonModule": true
+    }
+}
